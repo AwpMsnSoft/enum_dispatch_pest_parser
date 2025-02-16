@@ -1,0 +1,22 @@
+[package]
+name = "enum_dispatch_pest_parser"
+version = "0.1.0"
+authors = ["AwpMcnCoft Wgse Dev. <wgse-develop@awpmcncoft.anonaddy.com>"]
+edition = "2021"
+description = "Generate pest-based parsers with enum_dispatch integration for static method dispatch"
+repository = "https://github.com/AwpMsnSoft/enum_dispatch_pest_parser"
+readme = "README.md"
+keywords = ["parser", "pest", "enum-dispatch", "procedural-macro"]
+categories = ["parsing", "parser-implementations"]
+license = "MIT OR Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+pest = "^2.5"
+pest_generator = "^2.5"
+proc-macro2 = "^1.0"
+quote = "^1.0"
+regex = "^1.11"
+syn = { version = "^2.0", features = ["full"] }
