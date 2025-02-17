@@ -106,7 +106,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use regex::Regex;
 use std::str::FromStr;
-use syn::{parse_macro_input, parse_str, punctuated::Punctuated, ItemEnum, ItemStruct, LitStr};
+use syn::{
+    parse_macro_input, parse_str, punctuated::Punctuated, Expr, ItemEnum, ItemStruct, Lit,
+    MetaNameValue,
+};
 
 fn enum_dispatch_tag_generator(nodes: TokenStream) -> TokenStream {
     let raw_codes = derive_parser(nodes.into(), false).to_string();
@@ -250,6 +253,24 @@ fn enum_dispatch_generated_enum_hooker(nodes: TokenStream, interface: String) ->
     TokenStream::from_str(&raw_codes).expect("illegal code format found")
 }
 
+fn get_pest_parser_argument(arg: MetaNameValue) -> (String, String) {
+    let key = if let Some(ident) = arg.path.get_ident() {
+        ident.to_string()
+    } else {
+        panic!("key of argument must be an identifier");
+    };
+    let value = if let Expr::Lit(lit) = arg.value {
+        if let Lit::Str(lit_str) = lit.lit {
+            lit_str.value()
+        } else {
+            panic!("value of argument must be a string literal");
+        }
+    } else {
+        panic!("value of argument must be a string literal");
+    };
+    (key, value)
+}
+
 /// Generates a pest-based parser with `enum_dispatch` integration for static method dispatch.
 ///
 /// This procedural macro automates the creation of a parser from a pest grammar file while generating
@@ -261,14 +282,32 @@ pub fn pest_parser(arg: TokenStream, input: TokenStream) -> TokenStream {
     let vis = input.vis;
     let ident = input.ident;
 
-    let args = parse_macro_input!(arg with Punctuated::<LitStr, syn::Token![,]>::parse_terminated);
+    let args =
+        parse_macro_input!(arg with Punctuated::<MetaNameValue, syn::Token![,]>::parse_terminated);
 
-    if args.len() != 2 {
-        panic!("expected 2 arguments, but got {}", args.len());
+    assert!(
+        args.len() == 2,
+        "expected 2 arguments, but got {}",
+        args.len()
+    );
+
+    let (arg0_key, mut arg0_value) = get_pest_parser_argument(args[0].clone());
+    let (arg1_key, mut arg1_value) = get_pest_parser_argument(args[1].clone());
+
+    assert!(
+        (arg0_key.as_str(), arg1_key.as_str()) == ("grammar", "interface")
+            || (arg0_key.as_str(), arg1_key.as_str()) == ("interface", "grammar"),
+        "expected arguments are `grammar` and `interface`, but got `{}` and `{}`",
+        arg0_key.clone(),
+        arg1_key.clone()
+    );
+
+    if arg0_key == String::from("interface") {
+        std::mem::swap(&mut arg0_value, &mut arg1_value);
     }
 
-    let grammar_file = args[0].value();
-    let interface = args[1].value();
+    let grammar_file = arg0_value.clone();
+    let interface = arg1_value.clone();
 
     let mut ast_part1: TokenStream = quote! {
         #vis struct #ident;

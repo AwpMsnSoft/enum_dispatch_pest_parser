@@ -1,6 +1,6 @@
 [package]
 name = "enum_dispatch_pest_parser"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["AwpMcnCoft Wgse Dev. <wgse-develop@awpmcncoft.anonaddy.com>"]
 edition = "2021"
 description = "Generate pest-based parsers with enum_dispatch integration for static method dispatch"

@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "enum_dispatch_pest_parser"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "pest",
  "pest_generator",
